@@ -16,7 +16,26 @@ The package is currently not registered. Install it using
 - cscmat (our custom format)
 
 ## How to use
-TODO
+
+```julia
+using SparseArrays
+using LDPCStorage
+
+H = sparse(Int8[
+        0 0 1 1 0 0 0 0 1 0 0 1 1 0
+        1 0 0 1 1 0 0 0 0 0 1 0 0 1
+        0 1 0 1 0 1 1 0 1 0 0 1 1 0
+        1 0 0 1 0 0 0 1 0 1 0 1 0 1
+    ])
+
+save_to_alist(H, "ldpc.alist")
+H_alist = load_alist("ldpc.alist")
+H == H_alist || warn("Failure")
+
+save_to_cscmat(H, "ldpc.cscmat")
+H_cscmat = load_cscmat("ldpc.cscmat")
+H == H_cscmat || warn("Failure")
+```
 
 ## Contributing
 Contributions, feature requests and suggestions are welcome. Open an issue or contact us directly.
