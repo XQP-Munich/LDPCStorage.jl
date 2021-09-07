@@ -1,6 +1,7 @@
 # LDPCStorage.jl
 
 [![CI](https://github.com/XQP-Munich/LDPCStorage.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/XQP-Munich/LDPCStorage.jl/actions)
+[![License](https://img.shields.io/github/license/XQP-Munich/LDPCStorage.jl)](./LICENSE)
 
 *Utility functions for reading and writing files containing LDPC matrices.*
 
