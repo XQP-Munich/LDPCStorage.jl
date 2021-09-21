@@ -1,13 +1,14 @@
 # LDPCStorage.jl
 
 [![CI](https://github.com/XQP-Munich/LDPCStorage.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/XQP-Munich/LDPCStorage.jl/actions)
+[![codecov](https://codecov.io/gh/XQP-Munich/LDPCStorage.jl/branch/main/graph/badge.svg?token=TGISS7YIJT)](https://codecov.io/gh/XQP-Munich/LDPCStorage.jl)
 [![License](https://img.shields.io/github/license/XQP-Munich/LDPCStorage.jl)](./LICENSE)
 
 *Utility functions for reading and writing files containing LDPC matrices.*
 
 ## Installation
 
-The package is currently not registered. Install it using 
+The package is currently not registered. Install it using the Julia package manager (Pkg) by the REPL command
 
         ] add <GITHUB URL>
 
