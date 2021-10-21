@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "LDPCStorage.jl: Utility functions for reading and writing files containing LDPC matrices."
+doi: 10.5281/zenodo.5589595
+publisher: Zenodo
+url: https://doi.org/10.5281/zenodo.5589595
+authors:
+  - family-names: Baliuka
+    given-names: Adomas
+    orcid: "https://orcid.org/0000-0002-7064-8502"
+license: MIT
