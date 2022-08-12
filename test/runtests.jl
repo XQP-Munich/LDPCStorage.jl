@@ -6,6 +6,7 @@ using LDPCStorage
     all_tests = Dict{String, Array{String, 1}}(
         "File Formats" => ["test_alist.jl",
                            "test_cscmat.jl",
+                           "test_cscjson.jl",
                            ],
         )
 
