@@ -6,6 +6,8 @@ CSCMAT_FORMAT_VERSION = v"0.1.0"  # track version of our custom CSCMAT file form
 
 
 """
+Note:THIS FORMATT IS DEPRECATED! USE THE JSON BASED FORMATS!
+
 write the three arrays defining compressed sparse column (CSC) storage of a matrix into a file.
 
 If `try_hex`, integers in arrays are stored as hexadecimals (without 0x prefix!)
@@ -73,6 +75,8 @@ end
 
 
 """
+Note:THIS FORMATT IS DEPRECATED! USE THE JSON BASED FORMATS!
+
 read the three arrays defining compressed sparse column (CSC) storage of a matrix into a file.
 
 If `try_hex`, integers are stored as hexadecimals (without 0x prefix!)
@@ -138,17 +142,24 @@ end
 
 
 """
-convert matrix of exponents for QC LDPC matrix to the actual binary LDPC matrix.
+Convert matrix of exponents for QC LDPC matrix to the actual binary LDPC matrix.
 
 The resulting QC-LDPC matrix is a block matrix where each block is either zero,
 or a circ-shifted identity matrix of size `expansion_factor`x`expansion_factor`.
 Each entry of the matrix Hqc denotes the amount of circular shift in the QC-LDPC matrix.
-No entry (i.e., a zero but not a stored one) at a given position in Hqc means the associated block is zero.
+No entry (or, by default, a stored zero entry) at a given position in Hqc means the associated block is zero.
+Use values of `expansion_factor` to denote the non-shifted identity matrix.
 """
 function Hqc_to_pcm(
     Hqc::SparseMatrixCSC{T,Int} where T <: Integer,
-    expansion_factor::Integer,
+    expansion_factor::Integer
+    ;
+    drop_stored_zeros=true
     )
+    if drop_stored_zeros
+        Hqc = dropzeros(Hqc)
+    end
+
     scale_idx(idx::Integer, expansion_factor::Integer) = (idx - 1) * expansion_factor + 1
     shifted_identity(N::Integer, shift::Integer, scalar_one=Int8(1)) = circshift(Matrix(scalar_one*I, N, N), (0, shift))
 
@@ -169,6 +180,8 @@ end
 
 
 """
+Note:THIS FORMATT IS DEPRECATED! USE THE JSON BASED FORMATS!
+
 Load exponents for a QC-LDPC matrix from a `.CSCMAT` file and return the binary LDPC matrix.
 
 Not every input `.cscmat` file will give a meaninful result.
