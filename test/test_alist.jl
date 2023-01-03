@@ -14,5 +14,8 @@ using LDPCStorage
 
     H_loaded = load_alist(file_path)
 
+    H_checked_redundancy = load_alist(file_path; check_redundant=true)
+
+    @test H_checked_redundancy == H_loaded
     @test H == H_loaded
 end
