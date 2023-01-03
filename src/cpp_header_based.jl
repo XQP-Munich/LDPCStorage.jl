@@ -7,8 +7,9 @@ using LinearAlgebra
 
 using Pkg
 
+# TODO!!!! USE `pkgversion(m::Module)` IN JULIA 1.9
 const cpp_file_description = """
-// This file was automatically generated using LDPCStorage.jl v$(Pkg.project().version) (https://github.com/XQP-Munich/LDPCStorage.jl).
+// This file was automatically generated using LDPCStorage.jl (https://github.com/XQP-Munich/LDPCStorage.jl).
 // A sparse LDPC matrix (containing only zeros and ones) is saved in compressed sparse column (CSC) format.
 // Since the matrix (and LDPC code) is known at compile time, there is no need to save it separately in a file.
 // This significantly blows up the executable size (the memory would still have to be used when saving the matrix).
@@ -24,7 +25,7 @@ in compressed sparse column (CSC) format.
 
 Note the conversion from Julia's one-based indices to zero-based indices in C++ (also within CSC format).
 """
-function write_cpp_header(
+function print_cpp_header(
     io::IO,
     H::AbstractArray{Int8, 2}
     ;

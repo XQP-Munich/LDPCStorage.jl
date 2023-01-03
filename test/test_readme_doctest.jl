@@ -20,7 +20,7 @@ H_csc = load_ldpc_from_json("./ldpc.bincsc.json")
 H == H_csc || warn("Failure")
 
 open("./autogen_ldpc.hpp", "w+") do io
-    write_cpp_header(io, H)
+    print_cpp_header(io, H)
 end
 ```
 """,

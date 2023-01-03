@@ -16,7 +16,7 @@ end
     H[2,2] = 0 # 9 becomes a stored zero
 
     open(output_path, "w+") do io
-        write_cpp_header(io, H)
+        print_cpp_header(io, H)
     end
 
     # TODO check correctness of written C++ header!

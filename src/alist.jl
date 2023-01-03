@@ -85,7 +85,7 @@ http://www.inference.org.uk/mackay/codes/alist.html
 """
 function save_to_alist(out_file_path::String, matrix::AbstractArray{Int8,2})
     open(out_file_path, "w+") do file
-        write_alist(file, matrix)
+        print_alist(file, matrix)
     end
 
     return nothing
@@ -98,7 +98,7 @@ Save LDPC matrix to file in alist format. For details about the format, see:
 https://aff3ct.readthedocs.io/en/latest/user/simulation/parameters/codec/ldpc/decoder.html#dec-h-path-image-required-argument
 http://www.inference.org.uk/mackay/codes/alist.html
 """
-function write_alist(io::IO, matrix::AbstractArray{Int8,2})
+function print_alist(io::IO, matrix::AbstractArray{Int8,2})
     # TODO more careful testing
     (the_M, the_N) = size(matrix)
 

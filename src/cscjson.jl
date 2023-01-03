@@ -2,18 +2,18 @@ using SparseArrays
 using LinearAlgebra
 using JSON
 
-const CSCJSON_FORMAT_VERSION = v"0.3.0"  # track version of our custom compressed sparse storage json file format.
+const CSCJSON_FORMAT_VERSION = v"0.3.1"  # track version of our custom compressed sparse storage json file format.
 const format_if_nnz_values_omitted = :BINCSCJSON
 const format_if_nnz_values_stored = :COMPRESSED_SPARSE_COLUMN
 
 const description = "Compressed sparse column storage of a matrix (arrays `colptr`, `rowval`, `stored_values` "*
     "are given in fields of the same name. Stored entries may be zero.). "*
-    "If the `format` is $format_if_nnz_values_omitted, the nonzero values are omitted to save storage space. "*
+    "If the `format` is $format_if_nnz_values_omitted, the `stored_values` are omitted. "*
     "Otherwise, format is expected to be $format_if_nnz_values_stored."
 
 
 get_metadata() = Dict(
-    :julia_package_version => "v$(Pkg.project().version)",
+    # :julia_package_version => "vTODO", # TODO!!!! USE `pkgversion(m::Module)` IN JULIA 1.9
     :julia_package_url => "https://github.com/XQP-Munich/LDPCStorage.jl",
 )
 
@@ -62,7 +62,7 @@ function print_bincscjson(
     
     data = Dict(
         :CSCJSON_FORMAT_VERSION => string(CSCJSON_FORMAT_VERSION),
-        :description => description,
+        :description => description*"\n\nThis file stores a sparse binary matrix in compressed sparse column (CSC) format.",
         :comments => comments,
         :format => format_if_nnz_values_omitted,  # this function does not store nonzero values.
         :n_rows => mat.m,
@@ -129,7 +129,7 @@ function print_qccscjson(
     )
     data = Dict(
         :CSCJSON_FORMAT_VERSION => string(CSCJSON_FORMAT_VERSION),
-        :description => description,
+        :description => description*"\n\nThis file stores the quasi-cyclic exponents of a low density parity check (LDPC) code in compressed sparse column (CSC) format.",
         :comments => comments,
         :format => format_if_nnz_values_stored,  # this function does store nonzero values.
         :n_rows => mat.m,
@@ -159,7 +159,7 @@ $(SIGNATURES)
 
 Loads LDPC matrix from a json file containing compressed sparse column (CSC) storage for either of
 - `qccscjson` (CSC of quasi-cyclic exponents) format
-- `bincscjson` (CSC of ) format
+- `bincscjson` (CSC of sparse binary matrix) format
 
 Use option to expand quasi-cyclic exponents and get a sparse binary matrix.
 """

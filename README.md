@@ -43,12 +43,12 @@ H_csc = load_ldpc_from_json("./ldpc.bincsc.json")
 H == H_csc || warn("Failure")
 
 open("./autogen_ldpc.hpp", "w+") do io
-    write_cpp_header(io, H)
+    print_cpp_header(io, H)
 end
 ```
 
 Also available are versions of the other methods accepting an `IO` object: 
-`write_alist`, `write_bincscjson`, etc.
+`print_alist`, `print_bincscjson`, etc.
 
 ## Contributing
 Contributions, feature requests and suggestions are welcome. Open an issue or contact us directly.
