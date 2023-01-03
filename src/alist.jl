@@ -2,7 +2,11 @@ using SparseArrays
 using LinearAlgebra
 
 
-"""Load an LDPC matrix from a text file in alist format."""
+"""
+$(SIGNATURES)
+
+Load an LDPC matrix from a text file in alist format.
+"""
 function load_alist(file_path::AbstractString; check_redundant=false,)
     if file_extension(file_path) != ".alist"
         @warn "load_alist called on file with extension '$(file_extension(file_path))', expected '.alist'"
@@ -73,15 +77,29 @@ end
 
 
 """
-    function save_to_alist(matrix::AbstractArray{Int8,2}, out_file_path::String)
+$(SIGNATURES)
 
 Save LDPC matrix to file in alist format. For details about the format, see:
 https://aff3ct.readthedocs.io/en/latest/user/simulation/parameters/codec/ldpc/decoder.html#dec-h-path-image-required-argument
 http://www.inference.org.uk/mackay/codes/alist.html
-todo test this carefully
 """
-function save_to_alist(matrix::AbstractArray{Int8,2}, out_file_path::String)
+function save_to_alist(out_file_path::String, matrix::AbstractArray{Int8,2})
+    open(out_file_path, "w+") do file
+        write_alist(file, matrix)
+    end
 
+    return nothing
+end
+
+"""
+$(SIGNATURES)
+
+Save LDPC matrix to file in alist format. For details about the format, see:
+https://aff3ct.readthedocs.io/en/latest/user/simulation/parameters/codec/ldpc/decoder.html#dec-h-path-image-required-argument
+http://www.inference.org.uk/mackay/codes/alist.html
+"""
+function write_alist(io::IO, matrix::AbstractArray{Int8,2})
+    # TODO more careful testing
     (the_M, the_N) = size(matrix)
 
     variable_node_degrees = get_variable_node_degrees(matrix)
@@ -124,10 +142,8 @@ function save_to_alist(matrix::AbstractArray{Int8,2}, out_file_path::String)
     # check node '1'
     append!(lines, get_node_indices(matrix))
 
-    open(out_file_path, "w+") do file
-        for line in lines
-            println(file, line)
-        end
+    for line in lines
+        println(io, line)
     end
 
     return nothing

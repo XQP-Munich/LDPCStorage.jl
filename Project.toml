@@ -1,19 +1,22 @@
 name = "LDPCStorage"
 uuid = "d46d874d-5773-4ce9-8adb-568101dc8882"
 authors = ["Adomas Baliuka <A.Baliuka@physik.uni-muenchen.de>"]
-version = "0.2.0"
+version = "0.3.0"
 
 [deps]
+DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
-SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
+Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 SHA = "ea8e919c-243c-51af-8825-aaa63cd721ce"
+SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 
 [compat]
 julia = "1.6"
 
 [extras]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test"]
+test = ["Test", "Documenter"]

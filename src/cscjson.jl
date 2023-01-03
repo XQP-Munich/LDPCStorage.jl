@@ -2,7 +2,7 @@ using SparseArrays
 using LinearAlgebra
 using JSON
 
-CSCJSON_FORMAT_VERSION = v"0.3.0"  # track version of our custom compressed sparse storage json file format.
+const CSCJSON_FORMAT_VERSION = v"0.3.0"  # track version of our custom compressed sparse storage json file format.
 const format_if_nnz_values_omitted = :BINCSCJSON
 const format_if_nnz_values_stored = :COMPRESSED_SPARSE_COLUMN
 
@@ -12,23 +12,53 @@ const description = "Compressed sparse column storage of a matrix (arrays `colpt
     "Otherwise, format is expected to be $format_if_nnz_values_stored."
 
 
+get_metadata() = Dict(
+    :julia_package_version => "v$(Pkg.project().version)",
+    :julia_package_url => "https://github.com/XQP-Munich/LDPCStorage.jl",
+)
+
+
 """
+$(SIGNATURES)
+
+Helper method to use with files. See `print_bincscjson` for main interface.
+
+Writes the two arrays `colptr` and `rowval` defining compressed sparse column (CSC) storage of a the into a json file.
 Errors unless sparse matrix only contains ones and zeros.
-writes the two arrays `colptr` and `rowval` defining compressed sparse column (CSC) storage of a the into a json file.
-The third array of CSC format, i.e., the nonzero entries, is not needed, since 
+The third array of CSC format, i.e., the nonzero entries, is not needed, since the matrix is assumed to only contain ones and zeros.
 """
 function save_to_bincscjson(
-    mat::SparseMatrixCSC, destination_file_path::String
+    destination_file_path::String, mat::SparseMatrixCSC, 
+    ;
+    varargs...,
+    )
+    expected_extension = ".bincsc.json"
+    if !endswith(destination_file_path, expected_extension)
+        @warn "Expected extension '$expected_extension' when writing to '$(destination_file_path)')"
+    end
+    
+    open(destination_file_path, "w+") do file
+        print_bincscjson(file, mat; varargs...)
+    end
+
+    return nothing
+end
+
+
+"""
+$(SIGNATURES)
+
+Writes the two arrays `colptr` and `rowval` defining compressed sparse column (CSC) storage of a the into a json file.
+Errors unless sparse matrix only contains ones and zeros.
+The third array of CSC format, i.e., the nonzero entries, is not needed, since the matrix is assumed to only contain ones and zeros.
+"""
+function print_bincscjson(
+    io::IO, mat::SparseMatrixCSC
     ;
     comments::AbstractString="",
     )
     all(x->x==1, mat.nzval) || error(
         "The input matrix has nonzero entries besides 1. Note: the matrix should have no stored zeros.")
-
-    expected_extension = ".bincsc.json"
-    if !endswith(destination_file_path, expected_extension)
-        @warn "Expected extension '$expected_extension' when writing to '$(destination_file_path)')"
-    end
     
     data = Dict(
         :CSCJSON_FORMAT_VERSION => string(CSCJSON_FORMAT_VERSION),
@@ -42,24 +72,32 @@ function save_to_bincscjson(
         :rowval => mat.rowval .- 1,
     )
 
-    open(destination_file_path, "w+") do file
-        JSON.print(file, data)
+    try
+        data[:metadata] = get_metadata()
+    catch e
+        @warn "Generating metadata failed. Including default. Error:\n $e"
+        data[:metadata] = "Metadata generation failed."
     end
+
+    JSON.print(io, data)
 
     return nothing
 end
 
 
 """
+$(SIGNATURES)
+
+Helper method to use with files. See `print_qccscjson` for main interface.
+
 write the three arrays defining compressed sparse column (CSC) storage of a matrix into a file.
 This is used to store the exponents of a quasi-cyclic LDPC matrix.
 The QC expansion factor must be specified.
 """
 function save_to_qccscjson(
-    mat::SparseMatrixCSC, destination_file_path::String,
+    destination_file_path::String, mat::SparseMatrixCSC
     ;
-    qc_expansion_factor::Integer,
-    comments::AbstractString="",
+    varargs...
     )
 
     expected_extension = ".qccsc.json"
@@ -67,6 +105,28 @@ function save_to_qccscjson(
         @warn "Expected extension '$expected_extension' when writing to '$(destination_file_path)')"
     end
 
+    open(destination_file_path, "w+") do file
+        print_qccscjson(file, mat; varargs...)
+    end
+
+    return nothing
+end
+
+
+"""
+$(SIGNATURES)
+
+write the three arrays defining compressed sparse column (CSC) storage of a matrix into a file.
+This is used to store the exponents of a quasi-cyclic LDPC matrix.
+The matrix is assumed to contain quasi-cyclic exponents of an LDPC matrix.
+The QC expansion factor must be specified.
+"""
+function print_qccscjson(
+    io::IO, mat::SparseMatrixCSC, 
+    ;
+    qc_expansion_factor::Integer,
+    comments::AbstractString="",
+    )
     data = Dict(
         :CSCJSON_FORMAT_VERSION => string(CSCJSON_FORMAT_VERSION),
         :description => description,
@@ -81,14 +141,28 @@ function save_to_qccscjson(
         :nzval => mat.nzval,
     )
 
-    open(destination_file_path, "w+") do file
-        JSON.print(file, data)
+    try
+        data[:metadata] = get_metadata()
+    catch e
+        @warn "Generating metadata failed. Including default. Error:\n $e"
+        data[:metadata] = "Metadata generation failed."
     end
+
+    JSON.print(io, data)
 
     return nothing
 end
 
 
+"""
+$(SIGNATURES)
+
+Loads LDPC matrix from a json file containing compressed sparse column (CSC) storage for either of
+- `qccscjson` (CSC of quasi-cyclic exponents) format
+- `bincscjson` (CSC of ) format
+
+Use option to expand quasi-cyclic exponents and get a sparse binary matrix.
+"""
 function load_ldpc_from_json(file_path::AbstractString; expand_qc_exponents_to_binary=false)
     data = JSON.parsefile(file_path)
 

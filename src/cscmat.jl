@@ -142,6 +142,8 @@ end
 
 
 """
+DEPRECATED!
+
 Convert matrix of exponents for QC LDPC matrix to the actual binary LDPC matrix.
 
 The resulting QC-LDPC matrix is a block matrix where each block is either zero,

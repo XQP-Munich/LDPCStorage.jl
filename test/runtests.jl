@@ -7,6 +7,8 @@ using LDPCStorage
         "File Formats" => ["test_alist.jl",
                            "test_cscmat.jl",
                            "test_cscjson.jl",
+                           "test_cpp_header.jl",
+                           "test_readme_doctest.jl",
                            ],
         )
 

@@ -21,7 +21,7 @@ end
 
     target_file = tempname() * ".bincsc.json"
 
-    save_to_bincscjson(H, target_file; comments="Some comment")
+    save_to_bincscjson(target_file, H; comments="Some comment")
     H_read = load_ldpc_from_json(target_file)
     @test H_read == H
 end
@@ -31,7 +31,7 @@ end
     Hqc = load_ldpc_from_json(qccscjson_exampl_file_path)
 
     target_file = tempname() * ".qccsc.json"
-    save_to_qccscjson(Hqc, target_file;  comments="Some comment", qc_expansion_factor=32)
+    save_to_qccscjson(target_file, Hqc;  comments="Some comment", qc_expansion_factor=32)
     H_read = load_ldpc_from_json(target_file)
     @test H_read == Hqc
 
@@ -78,5 +78,5 @@ end
 
     target_file = tempname() * ".bincsc.json"
 
-    @test_throws ErrorException save_to_bincscjson(H, target_file; comments="Some comment")
+    @test_throws ErrorException save_to_bincscjson(target_file, H; comments="Some comment")
 end

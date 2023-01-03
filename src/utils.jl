@@ -1,6 +1,10 @@
 using SparseArrays, SHA
 
-"""parse a single line of space separated integers"""
+"""
+$(SIGNATURES)
+
+parse a single line of space separated integers
+"""
 space_sep_ints(s::AbstractString; base=10) = parse.(Int, split(s); base)
 
 
@@ -12,7 +16,10 @@ function file_extension(path::String)
     end
 end
 
+
 """
+$(SIGNATURES)
+
 Returns a 256 bit hash of a sparse matrix.
 This function should only be used for unit tests!!!
 """
