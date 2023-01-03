@@ -1,7 +1,7 @@
 name = "LDPCStorage"
 uuid = "d46d874d-5773-4ce9-8adb-568101dc8882"
 authors = ["Adomas Baliuka <A.Baliuka@physik.uni-muenchen.de>"]
-version = "0.3.1"
+version = "0.3.2"
 
 [deps]
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
@@ -15,8 +15,7 @@ SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 julia = "1.6"
 
 [extras]
-Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test", "Documenter"]
+test = ["Test"]

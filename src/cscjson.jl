@@ -7,9 +7,10 @@ const format_if_nnz_values_omitted = :BINCSCJSON
 const format_if_nnz_values_stored = :COMPRESSED_SPARSE_COLUMN
 
 const description = "Compressed sparse column storage of a matrix (arrays `colptr`, `rowval`, `stored_values` "*
-    "are given in fields of the same name. Stored entries may be zero.). "*
-    "If the `format` is $format_if_nnz_values_omitted, the `stored_values` are omitted. "*
-    "Otherwise, format is expected to be $format_if_nnz_values_stored."
+    "are given in fields of the same name.). "*
+    "If the `format` is $format_if_nnz_values_omitted, the `stored_values` are omitted.
+    All non-zero entries of the matrix are assumed to be '1'."*
+    "If `format` is $format_if_nnz_values_stored, `stored_values` are included."
 
 
 get_metadata() = Dict(
