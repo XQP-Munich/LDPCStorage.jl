@@ -6,11 +6,11 @@ const CSCJSON_FORMAT_VERSION = v"0.3.1"  # track version of our custom compresse
 const format_if_nnz_values_omitted = :BINCSCJSON
 const format_if_nnz_values_stored = :COMPRESSED_SPARSE_COLUMN
 
-const description = "Compressed sparse column storage of a matrix (arrays `colptr`, `rowval`, `stored_values` "*
+const description = "Compressed sparse column storage of a matrix. The format defines a sparse matrix using arrays "*
+    "'column pointers' (json key `colptr`), 'row indices' (key `rowval`), 'stored entries of the matrix' (key `nzval`) "*
     "are given in fields of the same name.). "*
-    "If the `format` is $format_if_nnz_values_omitted, the `stored_values` are omitted.
-    All non-zero entries of the matrix are assumed to be '1'."*
-    "If `format` is $format_if_nnz_values_stored, `stored_values` are included."
+    "If the `format` is $format_if_nnz_values_omitted, the `nzval` array is omitted and all non-zero entries of the matrix are assumed to be '1'."*
+    "If `format` is $format_if_nnz_values_stored, `nzval` is included."
 
 
 get_metadata() = Dict(

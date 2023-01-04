@@ -21,6 +21,7 @@ end
 
     target_file = tempname() * ".bincsc.json"
 
+    # TODO think about whether to allow (and just drop) stored zeros
     save_to_bincscjson(target_file, H; comments="Some comment")
     H_read = load_ldpc_from_json(target_file)
     @test H_read == H
