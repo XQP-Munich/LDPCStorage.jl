@@ -2,13 +2,12 @@ using SparseArrays
 using LinearAlgebra
 using JSON
 
-const CSCJSON_FORMAT_VERSION = v"0.3.1"  # track version of our custom compressed sparse storage json file format.
+const CSCJSON_FORMAT_VERSION = v"0.3.2"  # track version of our custom compressed sparse storage json file format.
 const format_if_nnz_values_omitted = :BINCSCJSON
 const format_if_nnz_values_stored = :COMPRESSED_SPARSE_COLUMN
 
 const description = "Compressed sparse column storage of a matrix. The format defines a sparse matrix using arrays "*
-    "'column pointers' (json key `colptr`), 'row indices' (key `rowval`), 'stored entries of the matrix' (key `nzval`) "*
-    "are given in fields of the same name.). "*
+    "'column pointers' (json key `colptr`), 'row indices' (key `rowval`) and 'stored entries of the matrix' (key `nzval`). "*
     "If the `format` is $format_if_nnz_values_omitted, the `nzval` array is omitted and all non-zero entries of the matrix are assumed to be '1'."*
     "If `format` is $format_if_nnz_values_stored, `nzval` is included."
 
