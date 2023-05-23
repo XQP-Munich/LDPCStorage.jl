@@ -11,9 +11,12 @@ Also supports efficient storage for quasi-cyclic LDPC codes.*
 
 ## Installation
 
-The package is currently not registered. Install it using the Julia package manager (Pkg) by the REPL command
+Run [Julia](https://julialang.org/), enter ] to bring up Julia's package manager, and add the package:
 
-        ] add <GITHUB URL>
+```julia
+julia> ]
+(v1.9) pkg> add LDPCStorage
+```
 
 ## Supported File Formats
 - `alist` (by David MacKay et al., see http://www.inference.org.uk/mackay/codes/alist.html)
@@ -21,6 +24,7 @@ The package is currently not registered. Install it using the Julia package mana
 - `bincsc.json` (Based on compressed sparse column (CSC). Valid `json`.)
 - `qccsc.json` (Based on compressed sparse column (CSC). Valid `json`. Store exponents of quasi-cyclic LDPC matrices)
 - `hpp (C++ header)` CSC of matrix as static data (write-only, reading not supported!)
+
 ## How to use
 
 ```julia
