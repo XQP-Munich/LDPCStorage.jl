@@ -1,6 +1,12 @@
 const ALL_CODEBLOCKS_IN_README = [
 raw"""
 ```julia
+julia> ]
+(v1.9) pkg> add LDPCStorage
+```
+""",
+raw"""
+```julia
 using SparseArrays
 using LDPCStorage
 
@@ -46,11 +52,13 @@ end
 @testset "codeblocks copied in README run without errors" begin
     for (i, code_block) in enumerate(ALL_CODEBLOCKS_IN_README)
         @testset "Codeblock $i" begin
-            # remove the ```julia ... ``` ticks and parse code
-            parsed_code = Meta.parseall(code_block[9:end-4])
-    
-            # check if it runs without exceptions
-            eval(parsed_code)
+            if !contains(code_block, "julia>")  # don't process examples that show REPL interaction (cannot be parsed like this)
+                # remove the ```julia ... ``` ticks and parse code
+                parsed_code = Meta.parseall(code_block[9:end-4])
+
+                # check if it runs without exceptions
+                eval(parsed_code)
+            end
         end
     end
 end
