@@ -8,10 +8,15 @@ CSCMAT_FORMAT_VERSION = v"0.1.0"  # track version of our custom CSCMAT file form
 """
 Note:THIS FORMATT IS DEPRECATED! USE THE JSON BASED FORMATS!
 
+$(SIGNATURES)
+
 write the three arrays defining compressed sparse column (CSC) storage of a matrix into a file.
 
 If `try_hex`, integers in arrays are stored as hexadecimals (without 0x prefix!)
 If `allow_omit_entries_if_only_stored_ones`, the `stored values` array is omitted if all stored values compare equal to 1.
+
+additional_header_lines should contain the quasi-cyclic exponent, if any. E.g.:
+``additional_header_lines = "QC matrix with expansion factor 32"``
 """
 function save_to_cscmat(
     mat::SparseMatrixCSC, destination_file_path::String
@@ -76,6 +81,8 @@ end
 
 """
 Note:THIS FORMATT IS DEPRECATED! USE THE JSON BASED FORMATS!
+
+$(SIGNATURES)
 
 read the three arrays defining compressed sparse column (CSC) storage of a matrix into a file.
 
@@ -142,7 +149,7 @@ end
 
 
 """
-DEPRECATED!
+$(SIGNATURES)
 
 Convert matrix of exponents for QC LDPC matrix to the actual binary LDPC matrix.
 
@@ -184,6 +191,8 @@ end
 """
 Note:THIS FORMATT IS DEPRECATED! USE THE JSON BASED FORMATS!
 
+$(SIGNATURES)
+
 Load exponents for a QC-LDPC matrix from a `.CSCMAT` file and return the binary LDPC matrix.
 
 Not every input `.cscmat` file will give a meaninful result.
@@ -192,6 +201,7 @@ Meanwhile, this function expects that the file stores exponents for a quasi-cycl
 The exponent matrix is read and expanded using the expansion factor.
 
 If the expansion factor is not provided, the CSCMAT file must contain a line specifying it.
+For example, 'QC matrix with expansion factor 32'
 """
 function load_matrix_from_qc_cscmat_file(file_path::AbstractString; expansion_factor=nothing)
     if isnothing(expansion_factor)
@@ -209,7 +219,7 @@ function load_matrix_from_qc_cscmat_file(file_path::AbstractString; expansion_fa
 
         m = match(r"Quasi cyclic exponents for a binary LDPC matrix with expansion factor ([0-9]*)\.", header)
         if isnothing(m)
-            error("Failed to infer expansion factor! No header line found containing it.")
+            throw(InconsistentBINCSCError("Failed to infer expansion factor! No header line found containing it."))
         else
             expansion_factor = parse(Int, m.captures[1])
             @info "Inferred expansion factor from file header: $expansion_factor"

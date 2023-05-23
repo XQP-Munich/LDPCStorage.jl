@@ -79,5 +79,5 @@ end
 
     target_file = tempname() * ".bincsc.json"
 
-    @test_throws ErrorException save_to_bincscjson(target_file, H; comments="Some comment")
+    @test_throws ArgumentError save_to_bincscjson(target_file, H; comments="Some comment")
 end

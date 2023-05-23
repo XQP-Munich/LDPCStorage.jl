@@ -18,4 +18,7 @@ using LDPCStorage
 
     @test H_checked_redundancy == H_loaded
     @test H == H_loaded
+
+    # check failures
+    @test_throws Exception load_alist("$(pkgdir(LDPCStorage))/test/files/test_Hqc.cscmat")  # completely invalid file
 end

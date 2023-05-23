@@ -1,6 +1,13 @@
 using SparseArrays
 using LinearAlgebra
 
+struct InconsistentAlistFileError <: Exception 
+    msg::Any
+end
+
+function Base.showerror(io::IO, e::InconsistentAlistFileError)
+    print(io, "InconsistentAlistFileError: ", e.msg)
+end
 
 """
 $(SIGNATURES)
@@ -12,24 +19,32 @@ function load_alist(file_path::AbstractString; check_redundant=false,)
         @warn "load_alist called on file with extension '$(file_extension(file_path))', expected '.alist'"
     end
 
-    file = open(file_path, "r")
-    nVN, nCN = space_sep_ints(readline(file))
-    dmax_VN, dmax_CN = space_sep_ints(readline(file))
-    var_node_degs = space_sep_ints(readline(file))
-    check_node_degs = space_sep_ints(readline(file))
-    remaining_lines = readlines(file)
-    close(file)
+    local nVN, nCN
+    local dmax_VN, dmax_CN
+    local var_node_degs, check_node_degs
+    local remaining_lines
+    try
+        open(file_path, "r") do file
+            nVN, nCN = space_sep_ints(readline(file))
+            dmax_VN, dmax_CN = space_sep_ints(readline(file))
+            var_node_degs = space_sep_ints(readline(file))
+            check_node_degs = space_sep_ints(readline(file))
+            remaining_lines = readlines(file)
+        end
+    catch e
+        throw(InconsistentAlistFileError("Failed to parse '$(abspath(file_path))' as alist file. Reason:\n$e"))
+    end
 
     if length(remaining_lines) != nVN + nCN
-        error("Number of lines in $file_path is inconcistent with stated matrix size.")
+        throw(InconsistentAlistFileError("Number of lines in $file_path is inconcistent with stated matrix size."))
     end
 
     if dmax_CN != maximum(check_node_degs)
-        error("Alist file $file_path claims: max. CN degree=$dmax_CN but contents give $(maximum(check_node_degs)).")
+        throw(InconsistentAlistFileError("Alist file $file_path claims: max. CN degree=$dmax_CN but contents give $(maximum(check_node_degs))."))
     end
 
     if dmax_VN != maximum(var_node_degs)
-        error("Alist file $file_path claims: max. VN degree=$dmax_CN but contents give $(maximum(var_node_degs)).")
+        throw(InconsistentAlistFileError("Alist file $file_path claims: max. VN degree=$dmax_CN but contents give $(maximum(var_node_degs))."))
     end
 
     # parity check matrix
@@ -40,7 +55,7 @@ function load_alist(file_path::AbstractString; check_redundant=false,)
         rows = space_sep_ints(remaining_lines[col_ind])
 
         if check_redundant && length(rows) != var_node_degs[col_ind]
-            error("Variable node degree in $file_path inconcistent with below data for VN $col_ind.")
+            throw(InconsistentAlistFileError("Variable node degree in $file_path inconcistent with below data for VN $col_ind."))
         end
 
         for row_ind in rows
@@ -56,19 +71,19 @@ function load_alist(file_path::AbstractString; check_redundant=false,)
 
             check_node_degree = length(cols)
             if check_node_degree != check_node_degs[row_ind]
-                error("Check node degree in $file_path inconcistent with below data for CN $row_ind.")
+                throw(InconsistentAlistFileError("Check node degree in $file_path inconcistent with below data for CN $row_ind."))
             end
 
             entry_counter += check_node_degree
             for col_ind in cols
                 if H[row_ind, col_ind] != 1
-                    error("VN and CN specifications in $file_path disagree on matrix entry ($row_ind, $col_ind).")
+                    throw(InconsistentAlistFileError("VN and CN specifications in $file_path disagree on matrix entry ($row_ind, $col_ind)."))
                 end
             end
         end
 
         if entry_counter != sum(H)
-            error("VN and CN specification in $file_path are inconsistent.")
+            throw(InconsistentAlistFileError("VN and CN specification in $file_path are inconsistent."))
         end
     end
 
@@ -80,7 +95,9 @@ end
 $(SIGNATURES)
 
 Save LDPC matrix to file in alist format. For details about the format, see:
+
 https://aff3ct.readthedocs.io/en/latest/user/simulation/parameters/codec/ldpc/decoder.html#dec-h-path-image-required-argument
+
 http://www.inference.org.uk/mackay/codes/alist.html
 """
 function save_to_alist(out_file_path::String, matrix::AbstractArray{Int8,2})
@@ -95,7 +112,9 @@ end
 $(SIGNATURES)
 
 Save LDPC matrix to file in alist format. For details about the format, see:
+
 https://aff3ct.readthedocs.io/en/latest/user/simulation/parameters/codec/ldpc/decoder.html#dec-h-path-image-required-argument
+
 http://www.inference.org.uk/mackay/codes/alist.html
 """
 function print_alist(io::IO, matrix::AbstractArray{Int8,2})

@@ -2,7 +2,7 @@ using SparseArrays
 using LinearAlgebra
 using JSON
 
-const CSCJSON_FORMAT_VERSION = v"0.3.2"  # track version of our custom compressed sparse storage json file format.
+const CSCJSON_FORMAT_VERSION = v"0.3.3"  # track version of our custom compressed sparse storage json file format.
 const format_if_nnz_values_omitted = :BINCSCJSON
 const format_if_nnz_values_stored = :COMPRESSED_SPARSE_COLUMN
 
@@ -13,9 +13,20 @@ const description = "Compressed sparse column storage of a matrix. The format de
 
 
 get_metadata() = Dict(
-    # :julia_package_version => "vTODO", # TODO!!!! USE `pkgversion(m::Module)` IN JULIA 1.9
-    :julia_package_url => "https://github.com/XQP-Munich/LDPCStorage.jl",
+    [
+    :julia_package_version => string(pkgversion(LDPCStorage))
+    :julia_package_url => "https://github.com/XQP-Munich/LDPCStorage.jl"
+    ]
 )
+
+
+struct InconsistentBINCSCError <: Exception
+    msg::Any
+end
+
+function Base.showerror(io::IO, e::InconsistentBINCSCError)
+    print(io, "InconsistentBINCSCError: ", e.msg)
+end
 
 
 """
@@ -57,8 +68,8 @@ function print_bincscjson(
     ;
     comments::AbstractString="",
     )
-    all(x->x==1, mat.nzval) || error(
-        "The input matrix has nonzero entries besides 1. Note: the matrix should have no stored zeros.")
+    all(x->x==1, mat.nzval) || throw(ArgumentError(
+        "The input matrix has nonzero entries besides 1. Note: the matrix should have no stored zeros."))
     
     data = Dict(
         :CSCJSON_FORMAT_VERSION => string(CSCJSON_FORMAT_VERSION),
@@ -181,6 +192,12 @@ function load_ldpc_from_json(file_path::AbstractString; expand_qc_exponents_to_b
             return Hqc
         end
     else
-        error("File $file_path specifies invalid format `$(data["format"])`.")
+        throw(InconsistentBINCSCError("File $file_path specifies invalid format `$(data["format"])`."))
     end
+end
+
+
+function get_qc_expansion_factor(file_path::AbstractString)
+    data = JSON.parsefile(file_path)
+    return Int(data["qc_expansion_factor"])
 end
