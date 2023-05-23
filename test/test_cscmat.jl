@@ -55,6 +55,8 @@ end
         end
     end
 
+    # test failures
+    @test_throws LDPCStorage.InconsistentBINCSCError load_matrix_from_qc_cscmat_file("$(pkgdir(LDPCStorage))/test/files/test_H.bincsc.json"; expansion_factor=32)
 end
 
 
