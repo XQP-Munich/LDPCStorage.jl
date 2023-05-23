@@ -207,14 +207,17 @@ function load_matrix_from_qc_cscmat_file(file_path::AbstractString; expansion_fa
     if isnothing(expansion_factor)
         header = ""
         next_line = ""
+        try
+            open(file_path, "r") do f
+                while true
+                    header *= (next_line * "\n")
+                    next_line = readline(f)
 
-        open(file_path, "r") do f
-            while true
-                header *= (next_line * "\n")
-                next_line = readline(f)
-
-                (length(next_line) > 0 && next_line[1] == '#') || break
+                    (length(next_line) > 0 && next_line[1] == '#') || break
+                end
             end
+        catch e
+            throw(InconsistentBINCSCError("Failed to parse header of file '$file_path'. Not a valid qc-cscmat file? Reason:\n$e"))
         end
 
         m = match(r"Quasi cyclic exponents for a binary LDPC matrix with expansion factor ([0-9]*)\.", header)
@@ -226,7 +229,12 @@ function load_matrix_from_qc_cscmat_file(file_path::AbstractString; expansion_fa
         end
     end
 
-    Hqc = load_cscmat(file_path)
+    local Hqc
+    try
+        Hqc = load_cscmat(file_path)
+    catch e
+        throw(InconsistentBINCSCError("Failed to parse contents of file '$file_path'. Not a valid qc-cscmat file? Reason:\n$e"))
+    end
 
     H = Hqc_to_pcm(Hqc, expansion_factor)
 
