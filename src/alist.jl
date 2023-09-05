@@ -34,6 +34,12 @@ function load_alist(file_path::AbstractString; check_redundant=false,)
     catch e
         throw(InconsistentAlistFileError("Failed to parse '$(abspath(file_path))' as alist file. Reason:\n$e"))
     end
+    
+    # ignore empty lines. Allows, e.g., trailing newlines.
+    # The alist-files which this library writes do not include a trailing newline.
+    filter!(remaining_lines) do s
+        !isnothing(findfirst(r"\S+", s))  # r"\S+" means "at least one non-whitespace character"
+    end
 
     if length(remaining_lines) != nVN + nCN
         throw(InconsistentAlistFileError("Number of lines in $file_path is inconcistent with stated matrix size."))
