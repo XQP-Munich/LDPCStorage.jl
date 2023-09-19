@@ -12,10 +12,16 @@ end
 """
 $(SIGNATURES)
 
-Load an LDPC matrix from a text file in alist format.
+Load an LDPC matrix from a text file in alist format. Returns a SparseMatrixCSC{Int8}.
+
+By default, issues a warning if file extension is not ".alist". (Change `warn_unexpected_file_extension` to disable.)
+The alist format is redundant (the two halves of a file specify the same information, once by-row and once by-column).
+This function only uses the first half. (Change `check_redundant` to also parse and verify the second half.)
+
+For definition of alist format, see http://www.inference.org.uk/mackay/codes/alist.html
 """
-function load_alist(file_path::AbstractString; check_redundant=false,)
-    if file_extension(file_path) != ".alist"
+function load_alist(file_path::AbstractString; check_redundant=false, warn_unexpected_file_extension=true)
+    if warn_unexpected_file_extension && file_extension(file_path) != ".alist"
         @warn "load_alist called on file with extension '$(file_extension(file_path))', expected '.alist'"
     end
 
@@ -25,7 +31,7 @@ function load_alist(file_path::AbstractString; check_redundant=false,)
     local remaining_lines
     try
         open(file_path, "r") do file
-            nVN, nCN = space_sep_ints(readline(file))
+            nVN, nCN = space_sep_ints(readline(file))  # sparse matrix has size (nCN, nVN)
             dmax_VN, dmax_CN = space_sep_ints(readline(file))
             var_node_degs = space_sep_ints(readline(file))
             check_node_degs = space_sep_ints(readline(file))
@@ -53,10 +59,9 @@ function load_alist(file_path::AbstractString; check_redundant=false,)
         throw(InconsistentAlistFileError("Alist file $file_path claims: max. VN degree=$dmax_CN but contents give $(maximum(var_node_degs))."))
     end
 
-    # parity check matrix
-    H = spzeros(Int8, nCN, nVN)
-
-    # fill the matrix
+    # fill the matrix using coordinate format (COO)
+    I = Int[]; sizehint!(I, nCN ÷ 100)  # assume sparsity of 1% to minimize re-allocations
+    J = Int[]; sizehint!(J, nVN ÷ 100)  # assume sparsity of 1% to minimize re-allocations
     for col_ind in 1:nVN
         rows = space_sep_ints(remaining_lines[col_ind])
 
@@ -65,9 +70,12 @@ function load_alist(file_path::AbstractString; check_redundant=false,)
         end
 
         for row_ind in rows
-            H[row_ind, col_ind] = 1
+            # achieves `H[row_ind, col_ind] = 1`
+            push!(I, row_ind)
+            push!(J, col_ind)
         end
     end
+    H = sparse(I, J, one(Int8))  # has size (nCN, nVN)
 
     # the second half of the alist file is redundant. Check that it is consistent.
     if check_redundant
@@ -147,7 +155,7 @@ function print_alist(io::IO, matrix::AbstractArray{Int8,2})
 
     # -- Part 2 --
     # each following line describes the check nodes connected to a variable node, the first
-    # check node index is '1' (and not '0')
+    # check node index is '1' (i.e., alist format uses 1-based indexing)
     # variable node '1'
     """
         Get indices of elements equal to one in a matrix.
@@ -163,7 +171,7 @@ function print_alist(io::IO, matrix::AbstractArray{Int8,2})
 
     # -- Part 3 --
     # each following line describes the variables nodes connected to a check node, the first
-    # variable node index is '1' (and not '0')
+    # variable node index is '1' (i.e., alist format uses 1-based indexing)
     # check node '1'
     append!(lines, get_node_indices(matrix))
 
