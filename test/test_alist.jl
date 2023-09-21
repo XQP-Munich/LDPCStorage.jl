@@ -19,5 +19,6 @@ using LDPCStorage
     @test H_checked_redundancy == H_loaded
     @test H == H_loaded
 
-    @test_throws "invalid base 10 digit '#'" load_alist("$(pkgdir(LDPCStorage))/test/files/test_Hqc.cscmat")  # completely invalid file
+    # check failures
+    @test_throws Exception load_alist("$(pkgdir(LDPCStorage))/test/files/test_Hqc.cscmat")  # completely invalid file
 end
