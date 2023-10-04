@@ -2,7 +2,8 @@ using Test, Aqua
 using LDPCStorage
 
 @testset "Aqua (Code quality)" begin
-    Aqua.test_all(LDPCStorage)
+    Aqua.test_all(LDPCStorage; ambiguities = false)
+    Aqua.test_ambiguities([LDPCStorage, Core])  # exclude `Base` in order to not hit unrelated ambiguities from StatsBase.
 end
 
 @testset "LDPCStorage" begin

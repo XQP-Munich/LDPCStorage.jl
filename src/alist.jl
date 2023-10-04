@@ -1,5 +1,6 @@
 using SparseArrays
 using LinearAlgebra
+using StatsBase: countmap
 
 struct InconsistentAlistFileError <: Exception 
     msg::Any
@@ -108,13 +109,16 @@ end
 """
 $(SIGNATURES)
 
-Save LDPC matrix to file in alist format. For details about the format, see:
+Save LDPC matrix to file in alist format. 
+It is assumed that the matrix only contains zeros and ones. Otherwise, behavior is undefined.
+
+For details about the Alist format, see:
 
 https://aff3ct.readthedocs.io/en/latest/user/simulation/parameters/codec/ldpc/decoder.html#dec-h-path-image-required-argument
 
 http://www.inference.org.uk/mackay/codes/alist.html
 """
-function save_to_alist(out_file_path::String, matrix::AbstractArray{Int8,2})
+function save_to_alist(out_file_path::String, matrix::AbstractMatrix{Int8})
     open(out_file_path, "w+") do file
         print_alist(file, matrix)
     end
@@ -125,18 +129,19 @@ end
 """
 $(SIGNATURES)
 
-Save LDPC matrix to file in alist format. For details about the format, see:
+Save LDPC matrix to file in alist format.
+It is assumed that the matrix only contains zeros and ones. Otherwise, behavior is undefined.
+
+For details about the Alist format, see:
 
 https://aff3ct.readthedocs.io/en/latest/user/simulation/parameters/codec/ldpc/decoder.html#dec-h-path-image-required-argument
 
 http://www.inference.org.uk/mackay/codes/alist.html
 """
-function print_alist(io::IO, matrix::AbstractArray{Int8,2})
-    # TODO more careful testing
+function print_alist(io::IO, matrix::AbstractMatrix{Int8})
     (the_M, the_N) = size(matrix)
 
-    variable_node_degrees = get_variable_node_degrees(matrix)
-    check_node_degrees = get_check_node_degrees(matrix)
+    check_node_degrees, variable_node_degrees = get_node_degrees(matrix)
 
     # write data as specified by the alist format
     lines = String[]
@@ -159,11 +164,9 @@ function print_alist(io::IO, matrix::AbstractArray{Int8,2})
     # variable node '1'
     """
         Get indices of elements equal to one in a matrix.
-        :param matrix: 2d numpy array
-        :return: Array of strings, one string with indices for each line in the matrix.
+        Returns `Vector{String}`, one string with indices for each row of the matrix.
     """
     function get_node_indices(matrix::AbstractArray{Int8,2})
-        # the first check node index is '1' (and not '0')
         degrees = [findall(row .== 1) for row in eachrow(matrix)]
         return [join(string.(index_list), " ") for index_list in degrees]
     end
@@ -182,16 +185,24 @@ function print_alist(io::IO, matrix::AbstractArray{Int8,2})
     return nothing
 end
 
-
-
-# helper methods for testing the parity check matrix
-function get_variable_node_degrees(matrix::AbstractArray{Int8,2})
-    @assert(length(size(matrix)) == 2, "Matrix required. Wrong number of dimensions")
-    return [sum(row) for row in eachcol(matrix)]
+function get_node_degrees(matrix::AbstractMatrix{Int8})
+    check_node_degrees = [sum(row) for row in eachrow(matrix)]
+    variable_node_degrees = [sum(row) for row in eachcol(matrix)]
+    return check_node_degrees, variable_node_degrees
 end
 
+"""Faster version operating on sparse arrays. Assumes all non-zero values are 1!!"""
+function get_node_degrees(H_::AbstractSparseMatrix{Int8})
+    H = dropzeros(H_)
 
-function get_check_node_degrees(matrix::AbstractArray{Int8,2})
-    @assert(length(size(matrix)) == 2, "Matrix required. Wrong number of dimensions")
-    return [sum(row) for row in eachrow(matrix)]
+    I, J, _ = findnz(H)  # assumes all non-zero values are 1!
+    row_counts = countmap(I)
+    col_counts = countmap(J)
+    
+    check_node_degrees = zeros(Int, size(H, 1))
+    var_node_degrees = zeros(Int, size(H, 2))
+    check_node_degrees[collect(keys(row_counts))] .= values(row_counts)
+    var_node_degrees[collect(keys(col_counts))] .= values(col_counts)
+
+    return check_node_degrees, var_node_degrees
 end
