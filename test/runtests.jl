@@ -2,8 +2,16 @@ using Test, Aqua
 using LDPCStorage
 
 @testset "Aqua (Code quality)" begin
-    Aqua.test_all(LDPCStorage; ambiguities = false)
     Aqua.test_ambiguities([LDPCStorage, Core])  # exclude `Base` in order to not hit unrelated ambiguities from StatsBase.
+    Aqua.test_unbound_args(LDPCStorage)
+    Aqua.test_undefined_exports(LDPCStorage)
+    Aqua.test_project_extras(LDPCStorage)
+    Aqua.test_stale_deps(LDPCStorage)
+     # Don't care about compat entries for test-only dependencies.
+     # Also ignore LinearAlgebra because in current Julia it doesn't "have a version"?!
+    Aqua.test_deps_compat(LDPCStorage; check_extras = false, ignore=[:LinearAlgebra]) 
+    Aqua.test_piracies(LDPCStorage)
+    Aqua.test_persistent_tasks(LDPCStorage)
 end
 
 @testset "LDPCStorage" begin
