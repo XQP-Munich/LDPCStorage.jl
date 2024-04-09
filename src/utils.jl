@@ -31,7 +31,7 @@ function hash_sparse_matrix(H::SparseMatrixCSC)
     write(io, H.rowval)
     write(io, H.nzval)
 
-    update!(ctx, io.data)
+    update!(ctx, take!(io))
 
     return digest!(ctx)
 end
