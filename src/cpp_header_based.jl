@@ -42,7 +42,7 @@ $(SIGNATURES)
 Output C++ header storing the sparse binary (containing only zeros and ones) matrix H
 in compressed sparse column (CSC) format.
 
-Note the conversion from Julia's one-based indices to zero-based indices in C++ (also within CSC format).
+Note the conversion from Julia's one-based indices to zero-based indices in C++ (also within CSC format)!
 """
 function print_cpp_header(
     io::IO,
@@ -108,9 +108,9 @@ $(SIGNATURES)
 
 Output C++ header storing the quasi-cyclic exponents of an LDPC matrix in compressed sparse column (CSC) format.
 This implies three arrays, which are called `colptr`, `row_idx` and `values`.
-The expansion factor must also be given.
+The expansion factor must also be given (it is simply stored as a variable in the header).
 
-Note the conversion from Julia's one-based indices to zero-based indices in C++ (also within CSC format).
+Note the conversion from Julia's one-based indices to zero-based indices in C++ (also within CSC format)!
 """
 function print_cpp_header_QC(
     io::IO,

@@ -52,8 +52,9 @@ open("./autogen_ldpc.hpp", "w+") do io
 end
 ```
 
-Also available are versions of the other methods accepting an `IO` object: 
-`print_alist`, `print_bincscjson`, etc.
+There also are methods accepting an `IO` object: `print_alist`, `print_bincscjson`, etc.
+
+Some methods support outputting quasi-cyclic exponents directly, e.g., `print_cpp_header_QC` outputs a C++ header.
 
 ## Contributing
 Contributions, feature requests and suggestions are welcome. Open an issue or contact us directly.
