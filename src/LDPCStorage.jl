@@ -21,5 +21,6 @@ export load_ldpc_from_json, CSCJSON_FORMAT_VERSION
 # This format stores the LDPC code as static data in a c++ header file.
 include("cpp_header_based.jl")
 export print_cpp_header
+export print_cpp_header_QC
 
 end # module

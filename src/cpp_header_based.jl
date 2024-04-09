@@ -16,6 +16,25 @@ const cpp_file_description = """
 
 """
 
+function smallest_cpp_type(x::Real)
+    if x isa Integer
+        bits_needed = ceil(Int, log2(x))
+        if bits_needed <= 8
+            return "std::uint8_t"
+        elseif bits_needed <= 16
+            return "std::uint16_t"
+        elseif bits_needed <= 32
+            return "std::uint32_t"
+        elseif bits_needed <= 64
+            return "std::uint64_t"
+        else
+            throw(ArgumentError("Value $x does not fit a standard-supported C++ fixed width integer type."))
+        end
+    else
+        return "double"
+    end
+end
+
 
 """
 $(SIGNATURES)
@@ -27,7 +46,7 @@ Note the conversion from Julia's one-based indices to zero-based indices in C++ 
 """
 function print_cpp_header(
     io::IO,
-    H::AbstractArray{Int8, 2}
+    H::SparseMatrixCSC{Int8}
     ;
     namespace_name::AbstractString = "AutogenLDPC",
     )
@@ -37,21 +56,9 @@ function print_cpp_header(
     all(values .== 1) || throw(ArgumentError("Expected matrix containing only zeros and ones."))
 
     num_nonzero = length(values)
-    if log2(num_nonzero) < 16
-        colptr_cpp_type = "std::uint16_t"
-    elseif log2(num_nonzero) < 32
-        colptr_cpp_type = "std::uint32_t"
-    elseif log2(num_nonzero) < 64
-        colptr_cpp_type = "std::uint64_t"
-    else
-        throw(ArgumentError("Input matrix not sparse? Has $num_nonzero entries..."))
-    end
+    colptr_cpp_type = smallest_cpp_type(num_nonzero)
 
-    if log2(size(H, 1)) < 16
-        row_idx_type = "std::uint16_t"
-    else 
-        row_idx_type = "std::uint32_t"
-    end
+    row_idx_cpp_type = smallest_cpp_type(size(H, 1))
 
     print(io, cpp_file_description)
 
@@ -61,9 +68,10 @@ function print_cpp_header(
 
     namespace $namespace_name {
 
-    constexpr inline std::size_t M = $(size(H, 1));
-    constexpr inline std::size_t N = $(size(H, 2));
-    constexpr inline std::size_t num_nz = $num_nonzero;
+    constexpr inline std::size_t M = $(size(H, 1));  // number of matrix rows
+    constexpr inline std::size_t N = $(size(H, 2));  // number of matrix columns
+    constexpr inline std::size_t num_nz = $num_nonzero;  // number of stored entries
+
     constexpr inline std::array<$colptr_cpp_type, N + 1> colptr = {""")
 
     for (i, idx) in enumerate(H.colptr)
@@ -78,10 +86,94 @@ function print_cpp_header(
     println(io, "\n};\n")
 
     println(io, "// ------------------------------------------------------- \n")
-    println(io, "constexpr inline std::array<$row_idx_type, num_nz> row_idx = {")
+    println(io, "constexpr inline std::array<$row_idx_cpp_type, num_nz> row_idx = {")
 
     for (i, idx) in enumerate(H.rowval)
         print(io, "0x$(string(idx - 1, base=16))")  # Convert index to base zero
+        if i != length(H.rowval)
+            print(io, ",")
+        end
+        if mod(i, 100) == 0
+            println(io, "")  # for formatting.
+        end
+    end
+    println(io, "\n};\n\n")
+
+    println(io, "} // namespace $namespace_name")
+end
+
+
+"""
+$(SIGNATURES)
+
+Output C++ header storing the quasi-cyclic exponents of an LDPC matrix in compressed sparse column (CSC) format.
+This implies three arrays, which are called `colptr`, `row_idx` and `values`.
+The expansion factor must also be given.
+
+Note the conversion from Julia's one-based indices to zero-based indices in C++ (also within CSC format).
+"""
+function print_cpp_header_QC(
+    io::IO,
+    H::SparseMatrixCSC
+    ;
+    expansion_factor::Integer,
+    namespace_name::AbstractString = "AutogenLDPC_QC",
+    )
+    H = dropzeros(H)  # remove stored zeros!
+    _, _, values = findnz(H)
+
+    num_nonzero = length(values)
+    colptr_cpp_type = smallest_cpp_type(num_nonzero)
+
+    row_idx_cpp_type = smallest_cpp_type(size(H, 1))
+
+    values_cpp_type = smallest_cpp_type(maximum(values))
+
+    print(io, cpp_file_description)
+
+    println(io, """
+    #include <cstdint>
+    #include <array>
+
+    namespace $namespace_name {
+
+    constexpr inline std::size_t M = $(size(H, 1));
+    constexpr inline std::size_t N = $(size(H, 2));
+    constexpr inline std::size_t num_nz = $num_nonzero;
+    constexpr inline std::size_t expansion_factor = $expansion_factor;
+
+    constexpr inline std::array<$colptr_cpp_type, N + 1> colptr = {""")
+
+    for (i, idx) in enumerate(H.colptr)
+        print(io, "0x$(string(idx - 1, base=16))")  # Convert index to base zero
+        if i != length(H.colptr)
+            print(io, ",")
+        end
+        if mod(i, 100) == 0
+            println(io, "")  # for formatting.
+        end
+    end
+    println(io, "\n};\n")
+
+    println(io, "// ------------------------------------------------------- \n")
+    println(io, "constexpr inline std::array<$row_idx_cpp_type, num_nz> row_idx = {")
+
+    for (i, idx) in enumerate(H.rowval)
+        print(io, "0x$(string(idx - 1, base=16))")  # Convert index to base zero
+        if i != length(H.rowval)
+            print(io, ",")
+        end
+        if mod(i, 100) == 0
+            println(io, "")  # for formatting.
+        end
+    end
+    println(io, "\n};\n\n")
+
+    println(io, "// ------------------------------------------------------- \n")
+    println(io, "constexpr inline std::array<$values_cpp_type, num_nz> values = {")
+
+    for (i, v) in enumerate(H.nzval)
+        print(io, string(v))
         if i != length(H.rowval)
             print(io, ",")
         end
