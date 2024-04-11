@@ -8,12 +8,25 @@ using LinearAlgebra
 using Pkg
 
 # TODO!!!! USE `pkgversion(m::Module)` IN JULIA 1.9
-const cpp_file_description = """
+
+const CPP_FILE_DESCRIPTION_BINARY_BINARY = """
 // This file was automatically generated using LDPCStorage.jl (https://github.com/XQP-Munich/LDPCStorage.jl).
 // A sparse LDPC matrix (containing only zeros and ones) is saved in compressed sparse column (CSC) format.
+// The "values" array of the CSC format is not included because all entries are assumed to be `1`.
+// Hence only two arrays are stored: `colptr` and `row_idx`.
+//
 // Since the matrix (and LDPC code) is known at compile time, there is no need to save it separately in a file.
 // This significantly blows up the executable size (the memory would still have to be used when saving the matrix).
+"""
 
+const CPP_FILE_DESCRIPTION_QC_EXPONENTS = """
+// This file was automatically generated using LDPCStorage.jl (https://github.com/XQP-Munich/LDPCStorage.jl).
+// A sparse quasi-cyclic LDPC matrix (containing only zeros and ones) is saved in compressed sparse column (CSC) format.
+// The matrix is not stored directly, rather its quasi-cyclic exponents are stored in CSC format, hence using arrays for
+// `colptr`, `row_idx` and `values`.
+//
+// Since the matrix (and LDPC code) is known at compile time, there is no need to save it separately in a file.
+// This significantly blows up the executable size (the memory would still have to be used when saving the matrix).
 """
 
 function smallest_cpp_type(x::Real)
@@ -60,7 +73,7 @@ function print_cpp_header(
 
     row_idx_cpp_type = smallest_cpp_type(size(H, 1))
 
-    print(io, cpp_file_description)
+    print(io, CPP_FILE_DESCRIPTION_BINARY_BINARY)
 
     println(io, """
     #include <cstdint>
@@ -129,7 +142,7 @@ function print_cpp_header_QC(
 
     values_cpp_type = smallest_cpp_type(maximum(values))
 
-    print(io, cpp_file_description)
+    print(io, CPP_FILE_DESCRIPTION_QC_EXPONENTS)
 
     println(io, """
     #include <cstdint>
@@ -137,9 +150,9 @@ function print_cpp_header_QC(
 
     namespace $namespace_name {
 
-    constexpr inline std::size_t M = $(size(H, 1));
-    constexpr inline std::size_t N = $(size(H, 2));
-    constexpr inline std::size_t num_nz = $num_nonzero;
+    constexpr inline std::size_t M = $(size(H, 1));  // number of matrix rows
+    constexpr inline std::size_t N = $(size(H, 2));  // number of matrix columns
+    constexpr inline std::size_t num_nz = $num_nonzero;  // number of stored entries
     constexpr inline std::size_t expansion_factor = $expansion_factor;
 
     constexpr inline std::array<$colptr_cpp_type, N + 1> colptr = {""")
